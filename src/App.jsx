@@ -21,7 +21,7 @@ const products = productsFromServer.map((product) => {
 });
 
 const prepareProducts = (data, options) => {
-  const { filterUser, searchQuery } = options;
+  const { filterUser, searchQuery, filterCategories } = options;
   let preparedProducts = [...data];
 
   if (filterUser) {
@@ -42,21 +42,50 @@ const prepareProducts = (data, options) => {
     ));
   }
 
+  if (filterCategories) {
+    if (!filterCategories.includes('All')) {
+      preparedProducts = preparedProducts.filter(product => filterCategories
+        .some(category => product.category.title.includes(category)));
+    }
+  }
+
   return preparedProducts;
 };
 
 export const App = () => {
   const [filterUser, setFilterUser] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterCategories, setFilterCategories] = useState(['All']);
 
   const filteredProducts = prepareProducts(
     products,
-    { filterUser, searchQuery },
+    { filterUser, searchQuery, filterCategories },
   );
 
   const resetFilters = () => {
     setFilterUser('All');
     setSearchQuery('');
+    setFilterCategories('All');
+  };
+
+  const handleSwitchCategory = (title) => {
+    if (filterCategories.includes(title)) {
+      setFilterCategories((list) => {
+        const filtered = list.filter(name => name !== title);
+
+        if (filtered.length < 1) {
+          return ['All'];
+        }
+
+        return filtered;
+      });
+    } else {
+      setFilterCategories((list) => {
+        const filtered = list.filter(name => name !== 'All');
+
+        return [...filtered, title];
+      });
+    }
   };
 
   return (
@@ -127,7 +156,10 @@ export const App = () => {
               <a
                 href="#/"
                 data-cy="AllCategories"
-                className="button is-success mr-6 is-outlined"
+                className={classNames('button is-success mr-6', {
+                  'is-outlined': !filterCategories.includes('All'),
+                })}
+                onClick={() => setFilterCategories(['All'])}
               >
                 All
               </a>
@@ -135,9 +167,12 @@ export const App = () => {
               {categoriesFromServer.map(category => (
                 <a
                   data-cy="Category"
-                  className="button mr-2 my-1 is-info"
+                  className={classNames('button mr-2 my-1', {
+                    'is-info': filterCategories.includes(category.title),
+                  })}
                   href="#/"
                   key={category.id}
+                  onClick={() => handleSwitchCategory(category.title)}
                 >
                   {category.title}
                 </a>
