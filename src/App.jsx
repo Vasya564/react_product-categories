@@ -65,7 +65,7 @@ export const App = () => {
   const resetFilters = () => {
     setFilterUser('All');
     setSearchQuery('');
-    setFilterCategories('All');
+    setFilterCategories(['All']);
   };
 
   const handleSwitchCategory = (title) => {
